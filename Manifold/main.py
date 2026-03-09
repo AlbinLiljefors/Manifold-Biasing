@@ -10,7 +10,7 @@ from data import load_mnist, load_svhn
 from train import train_model, evaluate_model
 from models import (
     LoveNet, ManifoldFrozenNet, ManifoldRawNet, BaselineNet,
-    CARLSSON_RAW_SEPLR, make_param_groups, count_params,
+    MANIFOLD_RAW_SEPLR, make_param_groups, count_params,
 )
 
 NOISE_SIGMAS = [0.0, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0]
@@ -29,8 +29,8 @@ def get_model_specs():
     return [
         ('Love', LoveNet, 0.0, None),
         ('ManifoldFrozen', ManifoldFrozenNet, 0.0, None),
-        ('ManifoldRaw', ManifoldRawNet, CARLSSON_RAW_SEPLR['recon_lambda'],
-         lambda m: make_param_groups(m, CARLSSON_RAW_SEPLR)),
+        ('ManifoldRaw', ManifoldRawNet, MANIFOLD_RAW_SEPLR['recon_lambda'],
+         lambda m: make_param_groups(m, MANIFOLD_RAW_SEPLR)),
         ('Baseline', BaselineNet, 0.0, None),
     ]
 
@@ -69,7 +69,14 @@ def mean_std(values):
 
 
 def run_all(args):
-    device = args.device or ('mps' if torch.backends.mps.is_available() else 'cpu')
+    if args.device:
+        device = args.device
+    elif torch.cuda.is_available():
+        device = 'cuda'
+    elif torch.backends.mps.is_available():
+        device = 'mps'
+    else:
+        device = 'cpu'
     seeds = [int(s) for s in args.seeds.split(',')]
 
     print(f"Device: {device} | epochs={args.epochs} lr={args.lr} batch={args.batch_size}")

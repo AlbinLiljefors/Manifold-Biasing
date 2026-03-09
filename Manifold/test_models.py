@@ -115,7 +115,7 @@ class TestFirstLayers:
         assert layer(torch.randn(4, 1, 28, 28)).shape == (4, 64, 26, 26)
         assert len(list(layer.parameters())) == 0
 
-    def test_carlsson_raw_first_layer(self):
+    def test_manifold_raw_first_layer(self):
         from models import ManifoldRawFirstLayer
         assert ManifoldRawFirstLayer()(torch.randn(4, 1, 28, 28)).shape == (4, 64, 26, 26)
 
@@ -147,7 +147,7 @@ class TestFullNetworks:
             assert model.fc1.weight.shape == ref.fc1.weight.shape
             assert model.fc2.weight.shape == ref.fc2.weight.shape
 
-    def test_carlsson_raw_net_exposes_recon_loss(self):
+    def test_manifold_raw_net_exposes_recon_loss(self):
         from models import ManifoldRawNet
         model = ManifoldRawNet()
         model(torch.randn(4, 1, 28, 28))

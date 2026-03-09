@@ -8,7 +8,7 @@ from reconstruction import ReconstructionHead, compute_recon_loss
 from analytic_filters import analytic_primary_circle, directional_derivative_filters
 
 # Tuned SepLR config (from CV sweep)
-CARLSSON_RAW_SEPLR = {
+MANIFOLD_RAW_SEPLR = {
     'joint_conv_lr': 5e-4,
     'iter_block_lr': 1e-7,
     'recon_lambda': 0.05,
