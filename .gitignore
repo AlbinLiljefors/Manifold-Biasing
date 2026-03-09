@@ -1,0 +1,19 @@
+# Ignore everything
+*
+
+# Allow Manifold/
+!Manifold/
+!Manifold/**
+
+# Ignore build artifacts inside Manifold/
+Manifold/__pycache__/
+Manifold/.pytest_cache/
+Manifold/.claude/
+Manifold/data/
+Manifold/archive/
+Manifold/*.log
+Manifold/*.json
+Manifold/.DS_Store
+
+# Allow this file
+!.gitignore

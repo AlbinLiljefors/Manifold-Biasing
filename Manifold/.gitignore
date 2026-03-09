@@ -1,0 +1,8 @@
+__pycache__/
+.pytest_cache/
+.claude/
+data/
+archive/
+*.log
+*.json
+.DS_Store
