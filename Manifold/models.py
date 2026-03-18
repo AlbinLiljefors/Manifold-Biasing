@@ -7,12 +7,12 @@ from iteration_block import FourPathIterBlock
 from reconstruction import ReconstructionHead, compute_recon_loss
 from analytic_filters import analytic_primary_circle, directional_derivative_filters
 
-# Tuned SepLR config (from CV sweep)
+# Tuned SepLR config (from CV sweep — optimized for MNIST->SVHN transfer)
 MANIFOLD_RAW_SEPLR = {
-    'joint_conv_lr': 5e-4,
-    'iter_block_lr': 1e-7,
+    'joint_conv_lr': 1e-3,
+    'iter_block_lr': 5e-6,
     'recon_lambda': 0.05,
-    'weight_decay': 0.1,
+    'weight_decay': 0.01,
 }
 
 

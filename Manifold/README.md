@@ -24,13 +24,41 @@ pip install -r requirements.txt
 # Tests
 python -m pytest test_models.py -v
 
-# Experiments (~55 min on MPS)
-python main.py --output results.json
+# CV hyperparameter search (~15 min on A100)
+python -u cv_search.py 2>&1 | tee cv_search.log
+
+# Final experiments (~13 min on A100)
+python -u main.py --output data/final_results.json 2>&1 | tee experiments.log
 ```
 
-## Key Results (sigma=1.0 noise, mean +/- std, 3 seeds)
+## Final Results (A100, 3 seeds, 5 epochs)
 
-- ManifoldRaw (SepLR): 95.0 +/- 0.9
-- ManifoldFrozen: 87.0 +/- 1.2
-- Love: 83.0 +/- 3.8
-- Baseline: 69.2 +/- 2.4
+### Transfer & Noise Robustness
+
+| Model | Clean | M->SVHN | S->MNIST | sigma=1.0 |
+|-------|-------|---------|----------|-----------|
+| ManifoldRaw | **98.6+/-0.0** | 25.7+/-1.3 | **57.1+/-0.3** | **95.1+/-0.7** |
+| Love | 98.2+/-0.1 | **36.7+/-0.1** | 51.5+/-1.5 | 83.0+/-3.5 |
+| ManifoldFrozen | 98.2+/-0.1 | 35.9+/-0.4 | 51.8+/-0.6 | 86.9+/-1.2 |
+| Baseline | 97.9+/-0.0 | 11.6+/-2.0 | 51.6+/-1.0 | 69.2+/-2.1 |
+
+### Love Noise Protocols (tau=0.2, omega^2=0.04)
+
+| Model | Train Noisy/Test Clean | Train Clean/Test Noisy |
+|-------|----------------------|----------------------|
+| ManifoldFrozen | 82.0+/-4.4 | 97.8+/-0.3 |
+| Love | 81.5+/-4.3 | 97.8+/-0.5 |
+| ManifoldRaw | 72.7+/-8.4 | **98.5+/-0.1** |
+| Baseline | 36.5+/-12.5 | 96.5+/-0.2 |
+
+### CV-Tuned Config (ManifoldRaw SepLR)
+
+Optimized for MNIST->SVHN transfer via 3-fold CV sequential marginal search.
+
+```
+joint_conv_lr=1e-3, iter_block_lr=5e-6, recon_lambda=0.05, weight_decay=0.01
+```
+
+## Status
+
+Complete. Definitive data in `data/final_results.json` and `data/cv_results.json`.

@@ -9,8 +9,10 @@ def load_mnist(batch_size=128, data_dir='./data'):
     ])
     train = datasets.MNIST(data_dir, train=True, download=True, transform=transform)
     test = datasets.MNIST(data_dir, train=False, download=True, transform=transform)
-    return (torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True),
-            torch.utils.data.DataLoader(test, batch_size=batch_size, shuffle=False))
+    return (torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True,
+                                         num_workers=4, pin_memory=True),
+            torch.utils.data.DataLoader(test, batch_size=batch_size, shuffle=False,
+                                         num_workers=4, pin_memory=True))
 
 
 def load_svhn(batch_size=128, data_dir='./data'):
@@ -22,5 +24,7 @@ def load_svhn(batch_size=128, data_dir='./data'):
     ])
     train = datasets.SVHN(data_dir, split='train', download=True, transform=transform)
     test = datasets.SVHN(data_dir, split='test', download=True, transform=transform)
-    return (torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True),
-            torch.utils.data.DataLoader(test, batch_size=batch_size, shuffle=False))
+    return (torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True,
+                                         num_workers=4, pin_memory=True),
+            torch.utils.data.DataLoader(test, batch_size=batch_size, shuffle=False,
+                                         num_workers=4, pin_memory=True))
