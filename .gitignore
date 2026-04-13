@@ -5,6 +5,10 @@
 !Manifold/
 !Manifold/**
 
+# Allow KleinBottleManifold/
+!KleinBottleManifold/
+!KleinBottleManifold/**
+
 # Ignore build artifacts inside Manifold/
 Manifold/__pycache__/
 Manifold/.pytest_cache/

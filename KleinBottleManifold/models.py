@@ -8,10 +8,10 @@ from reconstruction import ReconstructionHead, compute_recon_loss
 from analytic_filters import klein_bottle_legendre_filters_nonuniform
 
 SEPLR_CONFIG = {
-    'joint_conv_lr': 5e-4,
-    'iter_block_lr': 1e-7,
+    'joint_conv_lr': 1e-3,
+    'iter_block_lr': 5e-6,
     'recon_lambda': 0.05,
-    'weight_decay': 0.1,
+    'weight_decay': 0.01,
 }
 
 
@@ -35,7 +35,7 @@ class _BaseNet(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# First layers (the unique topological part)
+# First layers 
 # ---------------------------------------------------------------------------
 
 class KleinRawFirstLayer(nn.Module):

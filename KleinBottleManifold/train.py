@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
 
+from noise import add_class_noise
+
 
 def train_model(model, train_loader, epochs=10, lr=1e-3, recon_lambda=0.0,
                 device='cpu', verbose=True, param_groups=None,
-                log_interval=None, eval_loader=None):
+                log_interval=None, eval_loader=None, noise_params=None):
     model.to(device)
     model.train()
 
@@ -39,6 +41,8 @@ def train_model(model, train_loader, epochs=10, lr=1e-3, recon_lambda=0.0,
         total_loss, correct, total = 0.0, 0, 0
         for x, y in train_loader:
             x, y = x.to(device), y.to(device)
+            if noise_params is not None:
+                x = add_class_noise(x, y, *noise_params)
             optimizer.zero_grad()
             out = model(x)
             loss = criterion(out, y)
@@ -76,14 +80,17 @@ def _quick_eval(model, eval_loader, device):
     return 100.0 * correct / total
 
 
-def evaluate_model(model, test_loader, device='cpu', noise_sigma=0.0):
+def evaluate_model(model, test_loader, device='cpu', noise_sigma=0.0,
+                   noise_params=None):
     model.to(device)
     model.eval()
     correct, total = 0, 0
     with torch.no_grad():
         for x, y in test_loader:
             x, y = x.to(device), y.to(device)
-            if noise_sigma > 0:
+            if noise_params is not None:
+                x = add_class_noise(x, y, *noise_params)
+            elif noise_sigma > 0:
                 x = x + noise_sigma * torch.randn_like(x)
             correct += (model(x).argmax(dim=1) == y).sum().item()
             total += x.size(0)

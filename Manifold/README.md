@@ -62,3 +62,15 @@ joint_conv_lr=1e-3, iter_block_lr=5e-6, recon_lambda=0.05, weight_decay=0.01
 ## Status
 
 Complete. Definitive data in `data/final_results.json` and `data/cv_results.json`.
+
+## Missing Experiments for Love-Comparable Figures (optional, not blocking)
+
+The following experiments would produce figures directly comparable to Love et al. (JMLR 2023). None are currently implemented. `train.py` already supports `log_interval`+`eval_loader` for rate-of-learning curves.
+
+**Love Fig 4 — Accuracy+loss vs batches under noise.** Two panels: (1) train on noisy MNIST, plot accuracy+loss vs batches; (2) train on clean, test on noisy, plot accuracy+loss vs batches. Requires: training under noise with `log_interval` logging enabled. Currently we only record final accuracy per noise level.
+
+**Love Fig 5 — τ/ω² sweep of Love noise parameters.** 2×2 grid: vary τ ∈ [0, 0.8] with ω²=0.04 fixed (left column), vary ω² ∈ [0, 0.6] with τ=0.2 fixed (right column). Top row: train-noisy/test-clean. Bottom row: train-clean/test-noisy. Show accuracy at 1 and 5 epochs. Currently we evaluate at single point (τ=0.2, ω²=0.04) only.
+
+**Love Fig 6 — Sample efficiency bar chart + rate-of-learning curves.** Left: bar chart of accuracy after training on 1,000 images across MNIST, SVHN, USPS. Right: full accuracy vs images-seen curves per dataset. Requires: `load_mnist_subset(1000)` training + `log_interval` RoL logging for MNIST/SVHN. USPS not currently in our evaluation protocol.
+
+**Love Fig 7 — Transfer learning curves (SVHN↔MNIST).** Accuracy and loss vs batches during training, evaluated on the *other* dataset throughout. Two panels: SVHN→MNIST (left), MNIST→SVHN (right). Top: accuracy, bottom: loss. Requires: logging cross-dataset eval accuracy at intervals during training. Currently we only record final transfer accuracy.
