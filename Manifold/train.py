@@ -49,9 +49,11 @@ def train_model(model, train_loader, epochs=10, lr=1e-3, recon_lambda=0.0,
             total_loss += loss.item() * x.size(0)
             correct += (out.argmax(dim=1) == y).sum().item()
             total += x.size(0)
+        epoch_loss = total_loss / total
+        epoch_acc = 100.0 * correct / total
         if verbose:
-            print(f"  Epoch {epoch+1}/{epochs}: loss={total_loss/total:.4f}, "
-                  f"acc={100.0*correct/total:.1f}%")
+            print(f"  Epoch {epoch+1}/{epochs}: loss={epoch_loss:.4f}, "
+                  f"acc={epoch_acc:.1f}%")
 
     return model
 

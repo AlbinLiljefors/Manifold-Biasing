@@ -11,7 +11,7 @@ from data import load_mnist, load_svhn
 from train import train_model, evaluate_model
 from noise import generate_class_noise_params
 from models import (
-    LoveNet, ManifoldFrozenNet, ManifoldRawNet, BaselineNet,
+    LoveNet, ManifoldFusedFrozenNet, ManifoldRawNet, BaselineNet,
     MANIFOLD_RAW_SEPLR, make_param_groups, count_params,
 )
 
@@ -34,7 +34,7 @@ def get_model_specs():
     """Returns [(name, cls, recon_lambda, param_groups_fn or None)]."""
     return [
         ('Love', LoveNet, 0.0, None),
-        ('ManifoldFrozen', ManifoldFrozenNet, 0.0, None),
+        ('ManifoldFusedFrozen', ManifoldFusedFrozenNet, 0.0, None),
         ('ManifoldRaw', ManifoldRawNet, MANIFOLD_RAW_SEPLR['recon_lambda'],
          lambda m: make_param_groups(m, MANIFOLD_RAW_SEPLR)),
         ('Baseline', BaselineNet, 0.0, None),
@@ -128,6 +128,7 @@ def run_all(args):
         for seed in seeds:
             run_idx += 1
             set_seed(seed)
+
             print(f"[{run_idx}/{total_runs}] {name} seed={seed}...", end=" ", flush=True)
             t0 = time.time()
             res = run_single(cls, recon_lam, mnist_train, mnist_test,

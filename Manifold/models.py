@@ -30,7 +30,7 @@ def make_param_groups(model, config):
     ]
 
 
-# All models share identical downstream; only first_layer differs.
+# All models share identical downstream. only first_layer differs.
 class _BaseNet(nn.Module):
     def __init__(self):
         super().__init__()
@@ -56,7 +56,7 @@ class LoveFirstLayer(nn.Module):
         return F.conv2d(x, self.filters)
 
 
-class ManifoldFrozenFirstLayer(nn.Module):
+class ManifoldFusedFrozenFirstLayer(nn.Module):
     def __init__(self):
         super().__init__()
         filters = directional_derivative_filters(64, 3)
@@ -88,10 +88,10 @@ class LoveNet(_BaseNet):
         self.first_layer = LoveFirstLayer()
 
 
-class ManifoldFrozenNet(_BaseNet):
+class ManifoldFusedFrozenNet(_BaseNet):
     def __init__(self):
         super().__init__()
-        self.first_layer = ManifoldFrozenFirstLayer()
+        self.first_layer = ManifoldFusedFrozenFirstLayer()
 
 
 class ManifoldRawNet(_BaseNet):
