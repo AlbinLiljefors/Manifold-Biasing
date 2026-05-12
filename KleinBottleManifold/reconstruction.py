@@ -1,4 +1,4 @@
-# Reconstruction loss: predict 3x3 patches from coordinate vectors, weighted by local contrast
+# Reconstruction loss predict 3x3 patches from coordinate vectors, weighted by local contrast
 import torch.nn as nn
 import torch.nn.functional as F
 

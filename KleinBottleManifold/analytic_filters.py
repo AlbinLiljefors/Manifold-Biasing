@@ -6,8 +6,8 @@ import numpy as np
 _STD = 0.1
 
 
-def klein_bottle_legendre_filters_nonuniform(num_th1=8, num_th2=8, m=3):
-    """Klein bottle Legendre filters with sin^2(theta2) weighted sampling."""
+def klein_bottle_scaled_filters_nonuniform(num_th1=8, num_th2=8, m=3):
+    """Klein bottle scaled filters with sin^2(theta2) weighted sampling."""
     assert m % 2 == 1
     n_filters = num_th1 * num_th2
 

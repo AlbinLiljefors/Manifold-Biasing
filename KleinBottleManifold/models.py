@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from lifting import FrozenLiftKleinNormalized, FrozenLiftKtNormalized, FrozenLiftKtExact
 from iteration_block import FourPathIterBlock
 from reconstruction import ReconstructionHead, compute_recon_loss
-from analytic_filters import klein_bottle_legendre_filters_nonuniform
+from analytic_filters import klein_bottle_scaled_filters_nonuniform
 
 SEPLR_CONFIG = {
     'joint_conv_lr': 1e-3,
@@ -16,7 +16,7 @@ SEPLR_CONFIG = {
 
 
 # ---------------------------------------------------------------------------
-# Shared downstream (Conv -> FC -> Softmax); only first_layer differs.
+# Shared downstream (Conv -> FC -> Softmax) only first_layer differs.
 # ---------------------------------------------------------------------------
 
 class _BaseNet(nn.Module):
@@ -93,10 +93,10 @@ class KtExactRawFirstLayer(nn.Module):
 
 
 class KleinFrozenFirstLayer(nn.Module):
-    """64 frozen sin^2-weighted Klein bottle Legendre filters."""
+    """64 frozen sin^2-weighted Klein bottle scaled filters."""
     def __init__(self, num_th1=8, num_th2=8):
         super().__init__()
-        filters = klein_bottle_legendre_filters_nonuniform(num_th1, num_th2, m=3)
+        filters = klein_bottle_scaled_filters_nonuniform(num_th1, num_th2, m=3)
         self.register_buffer('filters', torch.from_numpy(filters).float().unsqueeze(1))
 
     def forward(self, x):
@@ -107,7 +107,7 @@ class KleinFrozenFirstLayer(nn.Module):
 # Full models (first layer + shared downstream)
 # ---------------------------------------------------------------------------
 
-class ManifoldKtLegRaw(_BaseNet):
+class ManifoldKt(_BaseNet):
     def __init__(self):
         super().__init__()
         self.first_layer = KtRawFirstLayer()
@@ -117,7 +117,7 @@ class ManifoldKtLegRaw(_BaseNet):
             self.first_layer._last_manifold, image, self.first_layer.recon_head)
 
 
-class ManifoldKtExactLegRaw(_BaseNet):
+class ManifoldKtExact(_BaseNet):
     def __init__(self):
         super().__init__()
         self.first_layer = KtExactRawFirstLayer()
@@ -127,13 +127,13 @@ class ManifoldKtExactLegRaw(_BaseNet):
             self.first_layer._last_manifold, image, self.first_layer.recon_head)
 
 
-class KleinLegFrozenNonUniform(_BaseNet):
+class KleinFrozenNonUnif(_BaseNet):
     def __init__(self):
         super().__init__()
         self.first_layer = KleinFrozenFirstLayer()
 
 
-class ManifoldKleinLegRaw(_BaseNet):
+class ManifoldKlein(_BaseNet):
     def __init__(self):
         super().__init__()
         self.first_layer = KleinRawFirstLayer()
@@ -175,9 +175,9 @@ def count_params(model):
 
 def get_model_specs():
     return [
-        ('ManifoldKtLegRaw',         ManifoldKtLegRaw,          SEPLR_CONFIG['recon_lambda'], make_param_groups),
-        ('ManifoldKtExactLegRaw',    ManifoldKtExactLegRaw,     SEPLR_CONFIG['recon_lambda'], make_param_groups),
-        ('KleinLegFrozenNonUniform', KleinLegFrozenNonUniform,  0.0, None),
-        ('ManifoldKleinLegRaw',      ManifoldKleinLegRaw,       SEPLR_CONFIG['recon_lambda'], make_param_groups),
+        ('ManifoldKt',         ManifoldKt,          SEPLR_CONFIG['recon_lambda'], make_param_groups),
+        ('ManifoldKtExact',    ManifoldKtExact,     SEPLR_CONFIG['recon_lambda'], make_param_groups),
+        ('KleinFrozenNonUnif', KleinFrozenNonUnif,  0.0, None),
+        ('ManifoldKlein',      ManifoldKlein,       SEPLR_CONFIG['recon_lambda'], make_param_groups),
         ('Baseline',                 Baseline,                   0.0, None),
     ]

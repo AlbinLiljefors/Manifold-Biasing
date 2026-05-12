@@ -1,4 +1,3 @@
-import ssl
 import torch
 from torchvision import datasets, transforms
 
@@ -26,36 +25,6 @@ def load_svhn(batch_size=128, data_dir='./data'):
     ])
     train_ds = datasets.SVHN(data_dir, split='train', download=True, transform=transform)
     test_ds = datasets.SVHN(data_dir, split='test', download=True, transform=transform)
-    return (torch.utils.data.DataLoader(train_ds, batch_size=batch_size, shuffle=True),
-            torch.utils.data.DataLoader(test_ds, batch_size=batch_size, shuffle=False))
-
-
-def load_usps(batch_size=128, data_dir='./data'):
-    transform = transforms.Compose([
-        transforms.Resize((28, 28)),
-        transforms.ToTensor(),
-        transforms.Normalize((MEAN,), (STD,)),
-    ])
-    old_ctx = ssl._create_default_https_context
-    ssl._create_default_https_context = ssl._create_unverified_context
-    try:
-        train_ds = datasets.USPS(data_dir, train=True, download=True, transform=transform)
-        test_ds = datasets.USPS(data_dir, train=False, download=True, transform=transform)
-    finally:
-        ssl._create_default_https_context = old_ctx
-    return (torch.utils.data.DataLoader(train_ds, batch_size=batch_size, shuffle=True),
-            torch.utils.data.DataLoader(test_ds, batch_size=batch_size, shuffle=False))
-
-
-def load_cifar10(batch_size=128, data_dir='./data'):
-    transform = transforms.Compose([
-        transforms.Grayscale(num_output_channels=1),
-        transforms.Resize((28, 28)),
-        transforms.ToTensor(),
-        transforms.Normalize((0.4811,), (0.2317,)),
-    ])
-    train_ds = datasets.CIFAR10(data_dir, train=True, download=True, transform=transform)
-    test_ds = datasets.CIFAR10(data_dir, train=False, download=True, transform=transform)
     return (torch.utils.data.DataLoader(train_ds, batch_size=batch_size, shuffle=True),
             torch.utils.data.DataLoader(test_ds, batch_size=batch_size, shuffle=False))
 

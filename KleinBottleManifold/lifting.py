@@ -1,4 +1,4 @@
-# Frozen 3x3 Legendre-normalized gradient kernels for Klein bottle lifting
+# Frozen 3x3 scaled gradient kernels for Klein bottle lifting
 import math
 import torch
 import torch.nn as nn
@@ -7,6 +7,7 @@ import torch.nn as nn
 class FrozenLiftKleinNormalized(nn.Module):
 
     def _build_kernels(self):
+        # Empirical rescaling factors
         NORM_Q2 = 2.0 / math.sqrt(3.0)
         NORM_Q3 = 1.0 / math.sqrt(5.0)
 

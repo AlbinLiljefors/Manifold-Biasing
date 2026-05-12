@@ -128,6 +128,22 @@ def run_sample_efficiency(model_cls, recon_lam, pg_fn, mnist_test,
     return results
 
 
+def images_to_threshold(curve, threshold=95.0):
+    """First images_seen where test accuracy crosses `threshold`, with linear
+    interpolation between surrounding checkpoints. `curve` is a list of
+    {'images_seen', 'accuracy'} dicts. Returns None if never crossed."""
+    for i, pt in enumerate(curve):
+        if pt['accuracy'] >= threshold:
+            if i == 0:
+                return pt['images_seen']
+            prev = curve[i - 1]
+            if pt['accuracy'] == prev['accuracy']:
+                return prev['images_seen']
+            frac = (threshold - prev['accuracy']) / (pt['accuracy'] - prev['accuracy'])
+            return prev['images_seen'] + frac * (pt['images_seen'] - prev['images_seen'])
+    return None
+
+
 def mean_std(values):
     m = sum(values) / len(values)
     if len(values) > 1:
@@ -184,6 +200,7 @@ def run_all(args):
             run_idx += 1
             set_seed(seed)
             _cleanup_device(device)
+
             print(f"[{run_idx}/{total_runs}] {name} seed={seed}...", end=" ", flush=True)
             t0 = time.time()
             try:
@@ -263,17 +280,45 @@ def run_all(args):
               f"{fmt(s['love_train_noisy_test_clean']['mean'], s['love_train_noisy_test_clean']['std']):>12} "
               f"{fmt(s['love_train_clean_test_noisy']['mean'], s['love_train_clean_test_noisy']['std']):>12}")
 
-    # Rate of learning (seed=42 only)
-    print(f"\nRATE OF LEARNING (seed=42, log every 50 batches)")
+    # Rate of learning (all seeds, log every 20 batches)
+    print(f"\nRATE OF LEARNING ({len(seeds)} seeds, log every 20 batches)")
     rol_results = {}
-    set_seed(42)
     for name, cls, recon_lam, pg_fn in model_specs:
-        print(f"  RoL: {name}...", end=" ", flush=True)
-        _cleanup_device(device)
-        curve = run_rate_of_learning(cls, recon_lam, pg_fn, mnist_train, mnist_test,
-                                     args.epochs, lr, device)
-        rol_results[name] = [{'images_seen': imgs, 'accuracy': acc} for imgs, acc in curve]
-        print(f"{len(curve)} points, final={curve[-1][1]:.1f}%")
+        per_seed_curves = {}
+        for seed in seeds:
+            print(f"  RoL: {name} seed={seed}...", end=" ", flush=True)
+            set_seed(seed)
+            _cleanup_device(device)
+            curve = run_rate_of_learning(cls, recon_lam, pg_fn, mnist_train,
+                                         mnist_test, args.epochs, lr, device,
+                                         log_interval=20)
+            per_seed_curves[seed] = curve
+            print(f"{len(curve)} points, final={curve[-1][1]:.1f}%")
+        # Aggregate: seeds share the same images_seen schedule, so mean per checkpoint
+        ref = per_seed_curves[seeds[0]]
+        mean_curve = []
+        for i, (imgs, _) in enumerate(ref):
+            accs = [per_seed_curves[s][i][1] for s in seeds]
+            mean_curve.append({'images_seen': imgs,
+                               'accuracy': sum(accs) / len(accs)})
+        # Convergence: images-to-threshold derived from mean curve + per seed
+        images_to_95_per_seed = {}
+        for s in seeds:
+            per_seed_dicts = [{'images_seen': imgs, 'accuracy': acc}
+                              for imgs, acc in per_seed_curves[s]]
+            images_to_95_per_seed[str(s)] = images_to_threshold(
+                per_seed_dicts, 95.0)
+        rol_results[name] = {
+            'curve_mean': mean_curve,
+            'images_to_95_from_mean': images_to_threshold(mean_curve, 95.0),
+            'images_to_95_per_seed': images_to_95_per_seed,
+            'per_seed': {str(s): [{'images_seen': imgs, 'accuracy': acc}
+                                   for imgs, acc in per_seed_curves[s]]
+                         for s in seeds},
+        }
+        i95 = rol_results[name]['images_to_95_from_mean']
+        print(f"    images-to-95 (mean curve): "
+              f"{'NEVER' if i95 is None else f'{i95:,.0f}'}")
     summary['rate_of_learning'] = rol_results
 
     # Sample efficiency (all seeds)
