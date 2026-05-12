@@ -24,10 +24,10 @@ pip install -r requirements.txt
 ## Usage
 
 ```bash
-# Run full comparison (5 models x 3 seeds, ~144 min on A10 GPU)
+# Run full comparison (5 models x 3 seeds)
 python -u main.py 2>&1 | tee experiments.log
 
-# Smoke test (1 epoch, 1 seed, ~5 min on CPU)
+# Smoke test (1 epoch, 1 seed)
 python -u main.py --epochs 1 --seeds 42 --output /tmp/smoke_test.json
 ```
 
