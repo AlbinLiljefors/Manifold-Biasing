@@ -19,5 +19,16 @@ Manifold/*.log
 Manifold/*.json
 Manifold/.DS_Store
 
+# Allow KBManifoldVideo/
+!KBManifoldVideo/
+!KBManifoldVideo/**
+
+# Ignore build artifacts inside KBManifoldVideo/
+KBManifoldVideo/__pycache__/
+KBManifoldVideo/.pytest_cache/
+KBManifoldVideo/data/
+KBManifoldVideo/*.log
+KBManifoldVideo/*.json
+
 # Allow this file
 !.gitignore
