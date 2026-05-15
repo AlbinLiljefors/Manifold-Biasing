@@ -2,9 +2,7 @@ import os
 import argparse
 import json
 import time
-import random
 
-import numpy as np
 import torch
 
 from data import load_mnist, load_svhn, load_mnist_subset
@@ -18,14 +16,6 @@ SAMPLE_SIZES = [500, 1000, 5000]
 # Love et al. (JMLR 2023) Section 4.1.2 default parameters
 LOVE_NOISE_TAU = 0.2
 LOVE_NOISE_OMEGA_SQ = 0.04
-
-
-def set_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
 
 
 def _cleanup_device(device):
@@ -162,7 +152,6 @@ def run_all(args):
         device = args.device
     elif torch.cuda.is_available():
         device = 'cuda'
-        torch.backends.cudnn.benchmark = True
     elif torch.backends.mps.is_available():
         device = 'mps'
     else:
@@ -198,7 +187,7 @@ def run_all(args):
         all_results[name] = {}
         for seed in seeds:
             run_idx += 1
-            set_seed(seed)
+            torch.manual_seed(seed)
             _cleanup_device(device)
 
             print(f"[{run_idx}/{total_runs}] {name} seed={seed}...", end=" ", flush=True)
@@ -211,7 +200,7 @@ def run_all(args):
                 if 'command buffer' in str(e) or 'MPS' in str(e):
                     print(f"\n    [MPS error, retrying on CPU]", flush=True)
                     _cleanup_device(device)
-                    set_seed(seed)
+                    torch.manual_seed(seed)
                     res = run_single(cls, recon_lam, pg_fn, mnist_train, mnist_test,
                                      svhn_train, svhn_test, args.epochs, lr,
                                      'cpu', noise_seed=seed)
@@ -287,7 +276,7 @@ def run_all(args):
         per_seed_curves = {}
         for seed in seeds:
             print(f"  RoL: {name} seed={seed}...", end=" ", flush=True)
-            set_seed(seed)
+            torch.manual_seed(seed)
             _cleanup_device(device)
             curve = run_rate_of_learning(cls, recon_lam, pg_fn, mnist_train,
                                          mnist_test, args.epochs, lr, device,
@@ -327,7 +316,7 @@ def run_all(args):
     for name, cls, recon_lam, pg_fn in model_specs:
         se_results[name] = {}
         for seed in seeds:
-            set_seed(seed)
+            torch.manual_seed(seed)
             _cleanup_device(device)
             print(f"  SE: {name} seed={seed}...", end=" ", flush=True)
             se = run_sample_efficiency(cls, recon_lam, pg_fn, mnist_test,

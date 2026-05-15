@@ -4,9 +4,7 @@ import argparse
 import json
 import os
 import time
-import random
 
-import numpy as np
 import torch
 
 from data import load_mnist
@@ -14,31 +12,13 @@ from train import train_model, evaluate_model
 from noise import generate_class_noise_params
 from models import (
     LoveNet, ManifoldFusedFrozenNet, ManifoldRawNet, BaselineNet,
-    MANIFOLD_RAW_SEPLR, make_param_groups, count_params,
+    SEPLR_CONFIG, make_param_groups, count_params, get_model_specs,
 )
 
 TAU_VALUES = [0.0, 0.2, 0.4, 0.6, 0.8]
 OMEGA_VALUES = [0.0, 0.2, 0.4, 0.6, 0.8]  # omega
 TAU_FIXED = 0.2
 OMEGA_SQ_FIXED = 0.04
-
-
-def set_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
-
-
-def get_model_specs():
-    return [
-        ('Love', LoveNet, 0.0, None),
-        ('ManifoldFusedFrozen', ManifoldFusedFrozenNet, 0.0, None),
-        ('ManifoldRaw', ManifoldRawNet, MANIFOLD_RAW_SEPLR['recon_lambda'],
-         lambda m: make_param_groups(m, MANIFOLD_RAW_SEPLR)),
-        ('Baseline', BaselineNet, 0.0, None),
-    ]
 
 
 def train_fresh(cls, recon_lam, train_loader, epochs, lr, device, pg_fn,
@@ -62,7 +42,6 @@ def run_sweep(args):
         device = args.device
     elif torch.cuda.is_available():
         device = 'cuda'
-        torch.backends.cudnn.benchmark = True
     elif torch.backends.mps.is_available():
         device = 'mps'
     else:
@@ -87,7 +66,7 @@ def run_sweep(args):
         }
 
         for seed in seeds:
-            set_seed(seed)
+            torch.manual_seed(seed)
             # Train one clean model for Protocol B (reused across all noise levels)
             print(f"  {name} seed={seed}: training clean model...", end=" ", flush=True)
             t0 = time.time()
@@ -107,7 +86,7 @@ def run_sweep(args):
                 results[name]['tau_sweep']['protocol_b'].setdefault(key, []).append(acc_b)
 
                 # Protocol A: train noisy / test clean (needs fresh model)
-                set_seed(seed)
+                torch.manual_seed(seed)
                 noisy_model = train_fresh(cls, recon_lam, mnist_train, args.epochs,
                                           args.lr, device, pg_fn, noise_params=noise)
                 acc_a = evaluate_model(noisy_model, mnist_test, device=device)
@@ -128,7 +107,7 @@ def run_sweep(args):
                 results[name]['omega_sweep']['protocol_b'].setdefault(key, []).append(acc_b)
 
                 # Protocol A
-                set_seed(seed)
+                torch.manual_seed(seed)
                 noisy_model = train_fresh(cls, recon_lam, mnist_train, args.epochs,
                                           args.lr, device, pg_fn, noise_params=noise)
                 acc_a = evaluate_model(noisy_model, mnist_test, device=device)

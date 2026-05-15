@@ -2,43 +2,19 @@ import argparse
 import json
 import os
 import time
-import random
 
-import numpy as np
 import torch
 
 from data import load_mnist, load_svhn
 from train import train_model, evaluate_model
 from noise import generate_class_noise_params
-from models import (
-    LoveNet, ManifoldFusedFrozenNet, ManifoldRawNet, BaselineNet,
-    MANIFOLD_RAW_SEPLR, make_param_groups, count_params,
-)
+from models import count_params, get_model_specs
 
 NOISE_SIGMAS = [0.0, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0]
 
 # Love et al. (JMLR 2023) Section 4.1.2 default parameters
 LOVE_NOISE_TAU = 0.2
 LOVE_NOISE_OMEGA_SQ = 0.04
-
-
-def set_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
-
-
-def get_model_specs():
-    """Returns [(name, cls, recon_lambda, param_groups_fn or None)]."""
-    return [
-        ('Love', LoveNet, 0.0, None),
-        ('ManifoldFusedFrozen', ManifoldFusedFrozenNet, 0.0, None),
-        ('ManifoldRaw', ManifoldRawNet, MANIFOLD_RAW_SEPLR['recon_lambda'],
-         lambda m: make_param_groups(m, MANIFOLD_RAW_SEPLR)),
-        ('Baseline', BaselineNet, 0.0, None),
-    ]
 
 
 def run_single(model_cls, recon_lam, mnist_train, mnist_test, svhn_train, svhn_test,
@@ -97,7 +73,6 @@ def run_all(args):
         device = args.device
     elif torch.cuda.is_available():
         device = 'cuda'
-        torch.backends.cudnn.benchmark = True
     elif torch.backends.mps.is_available():
         device = 'mps'
     else:
@@ -127,7 +102,7 @@ def run_all(args):
         all_results[name] = {}
         for seed in seeds:
             run_idx += 1
-            set_seed(seed)
+            torch.manual_seed(seed)
 
             print(f"[{run_idx}/{total_runs}] {name} seed={seed}...", end=" ", flush=True)
             t0 = time.time()

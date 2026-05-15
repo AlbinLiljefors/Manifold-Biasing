@@ -36,6 +36,7 @@ def train_model(model, train_loader, epochs=10, lr=1e-3, recon_lambda=0.0,
     logging = log_interval is not None and eval_loader is not None
     learning_curve = []
     images_seen = 0
+    last_log_bucket = -1
 
     for epoch in range(epochs):
         total_loss, correct, total = 0.0, 0, 0
@@ -55,10 +56,13 @@ def train_model(model, train_loader, epochs=10, lr=1e-3, recon_lambda=0.0,
             total += x.size(0)
             images_seen += x.size(0)
 
-            if logging and total % (log_interval * x.size(0)) < x.size(0):
-                acc = _quick_eval(model, eval_loader, device)
-                learning_curve.append((images_seen, acc))
-                model.train()
+            if logging:
+                bucket = images_seen // (log_interval * x.size(0))
+                if bucket > last_log_bucket:
+                    last_log_bucket = bucket
+                    acc = _quick_eval(model, eval_loader, device)
+                    learning_curve.append((images_seen, acc))
+                    model.train()
 
         epoch_loss = total_loss / total
         epoch_acc = 100.0 * correct / total

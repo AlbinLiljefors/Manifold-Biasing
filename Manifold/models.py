@@ -8,7 +8,7 @@ from reconstruction import ReconstructionHead, compute_recon_loss
 from analytic_filters import analytic_primary_circle, directional_derivative_filters
 
 # Tuned SepLR config (from CV sweep — optimized for MNIST->SVHN transfer)
-MANIFOLD_RAW_SEPLR = {
+SEPLR_CONFIG = {
     'joint_conv_lr': 1e-3,
     'iter_block_lr': 5e-6,
     'recon_lambda': 0.05,
@@ -16,7 +16,9 @@ MANIFOLD_RAW_SEPLR = {
 }
 
 
-def make_param_groups(model, config):
+def make_param_groups(model, config=None):
+    if config is None:
+        config = SEPLR_CONFIG
     return [
         {
             'filter': lambda name: 'iter_block' in name,
@@ -117,3 +119,12 @@ def count_params(model):
     for buf in model.buffers():
         frozen += buf.numel()
     return trainable, frozen
+
+
+def get_model_specs():
+    return [
+        ('Love',                 LoveNet,                 0.0,                         None),
+        ('ManifoldFusedFrozen',  ManifoldFusedFrozenNet,  0.0,                         None),
+        ('ManifoldRaw',          ManifoldRawNet,          SEPLR_CONFIG['recon_lambda'], make_param_groups),
+        ('Baseline',             BaselineNet,             0.0,                         None),
+    ]
