@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Datasets and binaries (auto-downloaded or manually prepared)
+**/data/MNIST/
+**/data/*.mat
+**/data/*.ubyte
+**/data/*.gz
+**/data/*.npz
+**/data/*.json
+
+# Thesis draft
+*.pdf
+
+# OS
+.DS_Store
